@@ -1,0 +1,62 @@
+/* ------------------
+ styling for the tables 
+   ------------------   */
+body {
+	line-height: 1.6em;
+	margin: 0;
+	padding: 0;
+	font-family: arial, helvetica, sans-serif;
+}
+
+h1 {
+	margin: 0;
+	width: 100%;
+	font-size: 18px;
+	position: absolute;
+	padding: 5px 50px;
+	background-color: #333;
+	color: #FFFFFF;
+	top: 0;
+	left: 0;
+	position: absolute;
+}
+
+#box-table img {
+	width: 48px;
+}
+
+#box-table {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+	margin: 45px;
+	width: 480px;
+	text-align: left;
+	border-collapse: collapse;
+}
+
+#box-table th {
+	font-size: 13px;
+	font-weight: normal;
+	padding: 8px;
+	background: #999;
+	border-top: 4px solid #333;
+	border-bottom: 1px solid #fff;
+	color: #000;
+}
+
+#box-table td {
+	padding: 8px;
+	background: #ddd;
+	border-bottom: 1px solid #fff;
+	color: #000;
+	border-top: 1px solid transparent;
+}
+
+#box-table tr:hover td {
+	background: #eee;
+	color: #000;
+}
+em {
+	background-color: yellow;
+	font-style: normal;
+}

@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project default="ask" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+	<taskdef name="if" classname="net.sf.antcontrib.logic.IfTask" />
+
+	<property name="tomcat.home" value="/usr/share/tomcat7" />
+	<property name="workspace.dir" value="${basedir}/../..">
+	</property>
+	<property name="content.dir" value="${basedir}/..">
+	</property>
+	<property name="build.dir" value="${content.dir}/build/classes">
+	</property>
+	<property name="src.dir" value="${content.dir}/src">
+	</property>
+	<property name="libs.dir" value="${content.dir}/WebContent/WEB-INF/lib">
+	</property>
+	<property name="ant.dir" value="${content.dir}/ant">
+	</property>
+	<property name="ivy.file" value="${ant.dir}/ivy.xml">
+	</property>
+
+	<path id="compilation.path">
+		<fileset dir="${tomcat.home}/bin">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${tomcat.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<path id="classpath">
+		<fileset dir="${libs.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<target name="ask">
+		<input message="Build apiscol content ?" validargs="true,false" addproperty="deploy-content" defaultvalue="true" />
+		<if>
+			<equals arg1="${deploy-content}" arg2="true" />
+			<then>
+				<antcall target="compile" />
+			</then>
+		</if>
+	</target>
+	<target name="clean">
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${build.dir}" includes="**/*"  excludes="**/log4j.properties" />
+		</delete>
+	</target>
+	<target name="resolve" depends="clean">
+		<ivy:resolve file="${ivy.file}" conf="content">
+		</ivy:resolve>
+		<ivy:retrieve sync="true" type="jar,bundle" pattern="${libs.dir}/[artifact]-[revision].[ext]" conf="content" />
+	</target>
+	<target name="compile" depends="resolve">
+		<mkdir dir="${build.dir}" />
+		<javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false">
+			<classpath>
+				<fileset dir="${libs.dir}">
+					<include name="*.jar" />
+				</fileset>
+				<path refid="compilation.path">
+				</path>
+			</classpath>
+		</javac>
+		<copy file="${src.dir}/log4j.properties" tofile="${build.dir}/log4j.properties">
+		</copy>
+	</target>
+
+</project>
