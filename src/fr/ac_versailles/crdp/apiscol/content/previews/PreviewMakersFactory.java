@@ -16,14 +16,15 @@ public class PreviewMakersFactory {
 			"application/vnd.ms-powerpoint",
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 			"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-			"application/vnd.oasis.opendocument.text",
-			"application/rtf" };
+			"application/vnd.oasis.opendocument.text", "application/rtf" };
 	static String[] images = { "image/tiff", "image/jpeg", "image/png" };
-	static String[] videos = { "video/x-ms-wmv", "video/x-m4v", "video/flv", "video/x-flv",
-			"video/ogg", "video/avi" };
+	static String[] videos = { "video/x-ms-wmv", "video/x-m4v", "video/flv",
+			"video/x-flv", "video/ogg", "video/avi" };
+	static String[] epub = { "application/epub+zip" };
 
 	public enum MimeTypeGroups {
-		PDF(pdf), OFFICE_DOCUMENTS(officedocs), IMAGES(images), VIDEOS(videos);
+		PDF(pdf), OFFICE_DOCUMENTS(officedocs), IMAGES(images), VIDEOS(videos), EPUB(
+				epub);
 
 		private String[] types;
 
@@ -74,6 +75,9 @@ public class PreviewMakersFactory {
 					entryPoint, realPath, previewUri);
 		if (MimeTypeGroups.OFFICE_DOCUMENTS.list().contains(mimeType))
 			return new MsDocumentPreviewMaker(resourceId, previewsRepoPath,
+					entryPoint, realPath, previewUri);
+		if (MimeTypeGroups.EPUB.list().contains(mimeType))
+			return new EpubPreviewMaker(resourceId, previewsRepoPath,
 					entryPoint, realPath, previewUri);
 		if (MimeTypeGroups.VIDEOS.list().contains(mimeType))
 			return new VideoPreviewMaker(resourceId, previewsRepoPath,
