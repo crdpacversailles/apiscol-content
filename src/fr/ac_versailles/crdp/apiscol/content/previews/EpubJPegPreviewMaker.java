@@ -17,11 +17,11 @@ import fr.ac_versailles.crdp.apiscol.content.fileSystemAccess.ResourceDirectoryI
 import fr.ac_versailles.crdp.apiscol.utils.FileUtils;
 import fr.ac_versailles.crdp.apiscol.utils.JSonUtils;
 
-public class EpubPreviewMaker extends AbstractPreviewMaker {
+public class EpubJPegPreviewMaker extends AbstractPreviewMaker {
 
 	private static final int DEFAULT_PAGES_NUMBER = 10;
 
-	public EpubPreviewMaker(String resourceId,
+	public EpubJPegPreviewMaker(String resourceId,
 			String previewsRepoPath, String entryPoint, String realPath,
 			String previewUri) {
 		super(resourceId, previewsRepoPath, entryPoint, realPath, previewUri);

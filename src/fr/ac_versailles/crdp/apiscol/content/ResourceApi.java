@@ -1163,7 +1163,7 @@ public class ResourceApi extends ApiscolApi {
 		}
 		task = PreviewMakersFactory.getPreviewMaker(mimeType, resourceId,
 				previewsRepoPath, entryPoint, isRemote, realPath(context),
-				previewUri);
+				previewUri, context);
 		if (task != null) {
 			synchronized (refreshProcessRegistry) {
 				identifier = refreshProcessRegistry.register(task, resourceId);

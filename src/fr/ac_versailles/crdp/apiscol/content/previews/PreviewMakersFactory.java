@@ -3,9 +3,13 @@ package fr.ac_versailles.crdp.apiscol.content.previews;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.ServletContext;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import fr.ac_versailles.crdp.apiscol.ParametersKeys;
+import fr.ac_versailles.crdp.apiscol.content.ResourceApi;
 import fr.ac_versailles.crdp.apiscol.utils.LogUtility;
 
 public class PreviewMakersFactory {
@@ -49,7 +53,8 @@ public class PreviewMakersFactory {
 
 	public static IPreviewMaker getPreviewMaker(String mimeType,
 			String resourceId, String previewsRepoPath, String entryPoint,
-			boolean isRemote, String realPath, String previewUri) {
+			boolean isRemote, String realPath, String previewUri,
+			ServletContext context) {
 		if (logger == null)
 			createLogger();
 		logger.info("Askin preview maker for mime type : " + mimeType);
@@ -77,8 +82,13 @@ public class PreviewMakersFactory {
 			return new MsDocumentPreviewMaker(resourceId, previewsRepoPath,
 					entryPoint, realPath, previewUri);
 		if (MimeTypeGroups.EPUB.list().contains(mimeType))
-			return new EpubPreviewMaker(resourceId, previewsRepoPath,
-					entryPoint, realPath, previewUri);
+			if (StringUtils.equals(ResourceApi.getProperty(
+					ParametersKeys.epubPreviewQuality, context), "low"))
+				return new EpubJPegPreviewMaker(resourceId, previewsRepoPath,
+						entryPoint, realPath, previewUri);
+			else
+				return new EpubMonoclePreviewMaker(resourceId,
+						previewsRepoPath, entryPoint, realPath, previewUri);
 		if (MimeTypeGroups.VIDEOS.list().contains(mimeType))
 			return new VideoPreviewMaker(resourceId, previewsRepoPath,
 					entryPoint, realPath, previewUri);
