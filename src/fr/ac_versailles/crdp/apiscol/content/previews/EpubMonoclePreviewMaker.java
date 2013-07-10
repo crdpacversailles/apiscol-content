@@ -10,6 +10,7 @@ import java.io.StringReader;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.NamespaceContext;
@@ -18,6 +19,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import nl.siegmann.epublib.domain.Book;
+import nl.siegmann.epublib.domain.Resource;
+import nl.siegmann.epublib.domain.Spine;
+import nl.siegmann.epublib.domain.SpineReference;
+import nl.siegmann.epublib.epub.EpubReader;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -31,45 +38,20 @@ import fr.ac_versailles.crdp.apiscol.utils.JSonUtils;
 
 public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 
-	private static final String TEACHER_ACTION_LABEL = "Action du professeur";
-	private static final String LEARNER_ACTION_LABEL = "Action de l'élève";
-	private static NamespaceContext ctx = new NamespaceContext() {
-		public String getNamespaceURI(String prefix) {
-			String uri;
-			if (prefix.equals(UsedNamespaces.SVG.getShortHand()))
-				uri = UsedNamespaces.SVG.getUri();
-			else
-				uri = UsedNamespaces.SVG.getUri();
-			return uri;
-		}
-
-		public Iterator<String> getPrefixes(String val) {
-			return null;
-		}
-
-		public String getPrefix(String uri) {
-			return null;
-		}
-	};
-	private static XPathFactory xPathFactory = XPathFactory.newInstance();
-	private static XPath xpath = xPathFactory.newXPath();
-
 	public EpubMonoclePreviewMaker(String resourceId, String previewsRepoPath,
 			String entryPoint, String realPath, String previewUri) {
 		super(resourceId, previewsRepoPath, entryPoint, realPath, previewUri);
-		assignNamespaceContext();
 
 	}
 
 	@Override
 	protected void createNewPreview() {
-		trackingObject
-				.updateStateAndMessage(States.pending,
-						"The ubz file is being converted to web-compliant format.");
-		String ubzFilePath = ResourceDirectoryInterface.getFilePath(resourceId,
-				entryPoint);
+		trackingObject.updateStateAndMessage(States.pending,
+				"The ubz file is being converted to web-compliant format.");
+		String epubFilePath = ResourceDirectoryInterface.getFilePath(
+				resourceId, entryPoint);
 		try {
-			FileUtils.unzipFile(new File(ubzFilePath), previewDirectoryPath);
+			FileUtils.unzipFile(new File(epubFilePath), previewDirectoryPath);
 		} catch (IOException e) {
 			trackingObject.updateStateAndMessage(States.aborted,
 					"Impossible to open the ubz file : " + e.getMessage());
@@ -78,97 +60,55 @@ public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 		}
 		trackingObject.updateStateAndMessage(States.pending,
 				"The content of the file has been extracted.");
-		DecimalFormat myFormatter = new DecimalFormat("000");
-		int counter = 1;
-		String filePath;
+		EpubReader epubReader = new EpubReader();
+		Book book = null;
+		StringBuilder bookComponentsBuilder = new StringBuilder();
+		StringBuilder bookHTMLBuilder = new StringBuilder();
+		StringBuilder bookContentBuilder = new StringBuilder();
+		String bookTitle = "Sans titre";
+		String bookCreator = "Auteur inconnu";
 
-		StringBuilder accordeonBuilder = new StringBuilder();
-		StringBuilder viewsBuilder = new StringBuilder();
-		while (true) {
-			String formattedCounter = myFormatter.format(counter);
-			filePath = new StringBuilder().append(previewDirectoryPath)
-					.append("/page").append(formattedCounter).append(".svg")
-					.toString();
-
-			File svgFile = new File(filePath);
-			if (!svgFile.exists()) {
-				break;
-			}
-
-			XPathExpression exp0 = null;
-			XPathExpression exp1 = null;
-			XPathExpression exp2 = null;
-			try {
-				// select all query terms tag from content response
-				exp0 = xpath.compile("//svg:teacherGuide/svg:title");
-				exp1 = xpath.compile("//svg:teacherGuide/svg:comment");
-				exp2 = xpath.compile("//svg:action");
-				InputSource inputSource = new InputSource(
-						svgFile.getAbsolutePath());
-				Element titleNode = (Element) exp0.evaluate(inputSource,
-						XPathConstants.NODE);
-				String title = "Page n°" + counter + " ";
-				if (titleNode != null && titleNode.hasAttribute("value"))
-					title += titleNode.getAttribute("value");
-
-				accordeonBuilder.append("<h1><a href=\"#")
-						.append(formattedCounter).append("\">").append(title)
-						.append("</a></h1>");
-				accordeonBuilder.append("<div>");
-				Element commentNode = (Element) exp1.evaluate(inputSource,
-						XPathConstants.NODE);
-
-				if (commentNode != null && commentNode.hasAttribute("value")) {
-					String comment = commentNode.getAttribute("value");
-					accordeonBuilder.append("<p class=\"ui-helper-reset\">")
-							.append(comment).append("</p>");
-				}
-				accordeonBuilder.append("</div>");
-				NodeList actionNodes = (NodeList) exp2.evaluate(inputSource,
-						XPathConstants.NODESET);
-				int actionCount = actionNodes.getLength();
-				viewsBuilder
-						.append("<div class=\"view\"><img src=\"")
-						.append(previewUri)
-						.append("/page")
-						.append(formattedCounter)
-						.append(".thumbnail.jpg\" /><div class=\"actions-container\">");
-
-				for (int i = 0; i < actionCount; i++) {
-
-					Element actionNode = (Element) actionNodes.item(i);
-					String task = actionNode.getAttribute("task").toString();
-					String owner = actionNode.getAttribute("owner").toString();
-					String ownerClass = "";
-					String ownerLabel = "";
-					String taskId = String.format("%s-%s", formattedCounter,
-							actionCount);
-					if (owner.contains("0")) {
-						ownerClass = "teacher";
-						ownerLabel = TEACHER_ACTION_LABEL;
-					} else {
-						ownerClass = "learner";
-						ownerLabel = LEARNER_ACTION_LABEL;
-					}
-					viewsBuilder.append("<p class=\"").append(ownerClass)
-							.append("\" id=\"").append(taskId).append("\">")
-							.append(ownerLabel).append(" : ").append(task)
-							.append("</p>");
-				}
-				viewsBuilder.append("</div></div>");
-			} catch (XPathExpressionException e) {
-				trackingObject.updateStateAndMessage(States.aborted,
-						"Problem with xpath expression : " + e.getMessage());
-				e.printStackTrace();
-				return;
-
-			}
-			counter++;
+		try {
+			book = epubReader.readEpub(new FileInputStream(epubFilePath));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
+		// bookTitle = book.getMetadata().getTitles().get(0);
+		// bookCreator = book.getMetadata().getAuthors().get(0).toString();
+		Spine spine = book.getSpine();
+		List<SpineReference> references = spine.getSpineReferences();
+		Iterator<SpineReference> it = references.iterator();
+		while (it.hasNext()) {
+			SpineReference spineReference = (SpineReference) it.next();
+			Resource resource = spineReference.getResource();
+			Boolean hasNext = it.hasNext();
+			bookComponentsBuilder.append("'").append(resource.getHref())
+					.append("'").append(hasNext ? "," : "");
+			bookContentBuilder.append("{title: \"").append(resource.getTitle())
+					.append("\",src: \"").append(resource.getHref())
+					.append("\"}").append(hasNext ? "," : "");
+			try {
+				bookHTMLBuilder
+						.append("'")
+						.append(resource.getHref())
+						.append("' : '")
+						.append(new String(resource.getData(), "UTF-8")
+								.replace("'", "&quote;").replaceAll("\n", ""))
+						.append("'").append(hasNext ? "," : "");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 		FileInputStream is = null;
 		try {
 			is = new FileInputStream(realPath
-					+ "/templates/uniboardpreviewwidget.html");
+					+ "/templates/epubpreviewwidget.html");
 		} catch (FileNotFoundException e) {
 			trackingObject.updateStateAndMessage(States.aborted,
 					"Problem during templates reading : " + e.getMessage());
@@ -176,8 +116,11 @@ public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 			return;
 		}
 		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("index", accordeonBuilder.toString());
-		tokens.put("views", viewsBuilder.toString());
+		tokens.put("book-components", bookComponentsBuilder.toString());
+		tokens.put("book-content", bookContentBuilder.toString());
+		tokens.put("book-html", bookHTMLBuilder.toString());
+		tokens.put("book-title", bookTitle);
+		tokens.put("book-creator", bookCreator);
 		tokens.put("preview-id", resourceId);
 		MapTokenResolver resolver = new MapTokenResolver(tokens);
 
@@ -203,11 +146,6 @@ public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 		String htmlPageFilePath = previewDirectoryPath + "/index.html";
 		FileUtils.writeDataToFile(new StringReader(pageHtml), htmlPageFilePath);
 		trackingObject.updateStateAndMessage(States.done,
-				"The ubz preview web page has been succesfully built.");
+				"The epub preview web page has been succesfully built.");
 	}
-
-	private static void assignNamespaceContext() {
-		xpath.setNamespaceContext(ctx);
-	}
-
 }

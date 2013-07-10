@@ -1,0 +1,48 @@
+ <style>
+    #monocle-${preview-id} { width: 300px; height: 400px; border: 1px solid #000; }
+ </style>
+<div
+	class="ubz-preview ui-helper-reset ui-widget-content preview-widget"
+	id="preview-${preview-id}">
+	<div id="monocle-${preview-id}"></div>
+
+</div>
+<link rel="stylesheet" type="text/css"
+	href="http://apiscol.crdp-versailles.fr/cdn/epub/styles/monocore.css" />
+<link rel="stylesheet" type="text/css"
+	href="http://apiscol.crdp-versailles.fr/cdn/epub/styles/monoctrl.css" />
+<script>
+var bookData = {
+		  getComponents: function () {
+		    return [
+		      ${book-components}
+		    ];
+		  },
+		  getContents: function () {
+		    return [
+		      ${book-content}
+		    ]
+		  },
+		  getComponent: function (componentId) {
+			  return {
+				  ${book-html}
+			    }[componentId];
+		    
+		  },
+		  getMetaData: function(key) {
+		    return {
+		      title: "${book-title}",
+		      creator: "${book-creator}"
+		    };
+		  }
+		}
+</script>
+<script type="text/javascript"
+	src="http://apiscol.crdp-versailles.fr/cdn/commons/scripts/apiscol-preview.js"></script>
+<script type="text/javascript"
+	src="http://apiscol.crdp-versailles.fr/cdn/epub/scripts/monocore.js"></script>
+<script type="text/javascript"
+	src="http://apiscol.crdp-versailles.fr/cdn/epub/scripts/monoctrl.js"></script>
+<script type="text/javascript"
+	src="http://apiscol.crdp-versailles.fr/cdn/epub/scripts/preview.js"></script>
+
