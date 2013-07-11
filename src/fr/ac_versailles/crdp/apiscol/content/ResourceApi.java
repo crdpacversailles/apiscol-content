@@ -85,7 +85,7 @@ import fr.ac_versailles.crdp.apiscol.utils.TimeUtils;
 public class ResourceApi extends ApiscolApi {
 
 	private static String apiscolInstanceName;
-	private static String previewsRepoPath;
+	private static String previewsRepoPath; 
 	private static ExecutorService compressionExecutor;
 	private static ExecutorService searchEngineRequestExecutor;
 	private static ExecutorService previewMakerExecutor;

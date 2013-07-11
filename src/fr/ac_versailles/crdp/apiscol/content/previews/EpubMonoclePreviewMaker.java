@@ -94,7 +94,7 @@ public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 			try {
 				bookHTMLBuilder
 						.append("'")
-						.append(resource.getHref())
+						.append(resource.getHref())   
 						.append("' : '")
 						.append(new String(resource.getData(), "UTF-8")
 								.replace("'", "&quote;").replaceAll("\n", ""))
