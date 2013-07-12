@@ -67,9 +67,14 @@ public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 		StringBuilder bookContentBuilder = new StringBuilder();
 		String bookTitle = "Sans titre";
 		String bookCreator = "Auteur inconnu";
-
+		String path = previewUri + "/";
 		try {
 			book = epubReader.readEpub(new FileInputStream(epubFilePath));
+			String bookOpfHref = book.getOpfResource().getHref();
+
+			if (bookOpfHref.indexOf('/') > 0)
+				path += bookOpfHref.substring(0, bookOpfHref.lastIndexOf('/'))
+						+ "/";
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -86,18 +91,21 @@ public class EpubMonoclePreviewMaker extends AbstractPreviewMaker {
 			SpineReference spineReference = (SpineReference) it.next();
 			Resource resource = spineReference.getResource();
 			Boolean hasNext = it.hasNext();
-			bookComponentsBuilder.append("'").append(resource.getHref())
-					.append("'").append(hasNext ? "," : "");
+			String href = resource.getHref();
+			bookComponentsBuilder.append("'").append(href).append("'")
+					.append(hasNext ? "," : "");
 			bookContentBuilder.append("{title: \"").append(resource.getTitle())
-					.append("\",src: \"").append(resource.getHref())
-					.append("\"}").append(hasNext ? "," : "");
+					.append("\",src: \"").append(href).append("\"}")
+					.append(hasNext ? "," : "");
+
 			try {
 				bookHTMLBuilder
 						.append("'")
-						.append(resource.getHref())   
+						.append(href)
 						.append("' : '")
 						.append(new String(resource.getData(), "UTF-8")
-								.replace("'", "&quote;").replaceAll("\n", ""))
+								.replace("'", "&quote;").replaceAll("\n", "")
+								.replace("src=\"", "src=\"" + path))
 						.append("'").append(hasNext ? "," : "");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
